@@ -1,22 +1,13 @@
 import React, { useState } from 'react';
-import { Globe2, Info, Languages, Download, ChevronDown } from 'lucide-react';
+import { Globe2, Info, Languages, ChevronDown } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
-import { pdf } from '@react-pdf/renderer';
-import { saveAs } from 'file-saver';
-import TimelinePDF from './components/TimelinePDF';
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+} from "@/components/ui/select"
 
 // Data structure for multiple timelines
 const timelineGroups = {
@@ -731,46 +722,19 @@ function App() {
     setLanguage(prev => prev === 'en' ? 'ne' : 'en');
   };
 
-  const exportToPDF = async (lang) => {
-    const currentTimeline = timelineGroups[activeTimeline];
-    const blob = await pdf(
-      <TimelinePDF timeline={currentTimeline} language={lang} />
-    ).toBlob();
-    
-    const fileName = `${currentTimeline.id}_${lang}_${new Date().toISOString().split('T')[0]}.pdf`;
-    saveAs(blob, fileName);
-  };
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-6 px-3">
       <div className="w-full max-w-3xl mx-auto mb-6">
         <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
-          <div className="flex gap-2">
-            <button 
-              onClick={toggleLanguage}
-              className="flex items-center gap-2 px-4 py-2 rounded-full bg-white shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200"
-            >
-              <Globe2 className="w-5 h-5 text-blue-600" />
-              <span className="font-medium">
-                {language === 'en' ? 'नेपाली' : 'English'}
-              </span>
-            </button>
-
-            <DropdownMenu>
-              <DropdownMenuTrigger className="flex items-center gap-2 px-4 py-2 rounded-full bg-white shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200">
-                <Download className="w-5 h-5 text-blue-600" />
-                <span className="font-medium">Export PDF</span>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent>
-                <DropdownMenuItem onClick={() => exportToPDF('en')}>
-                  Export in English
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => exportToPDF('ne')}>
-                  Export in Nepali
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
+          <button 
+            onClick={toggleLanguage}
+            className="flex items-center gap-2 px-4 py-2 rounded-full bg-white shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200"
+          >
+            <Globe2 className="w-5 h-5 text-blue-600" />
+            <span className="font-medium">
+              {language === 'en' ? 'नेपाली' : 'English'}
+            </span>
+          </button>
 
           <Select value={activeTimeline} onValueChange={setActiveTimeline}>
             <SelectTrigger className="w-[280px] bg-white">
