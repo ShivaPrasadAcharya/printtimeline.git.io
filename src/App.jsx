@@ -101,29 +101,28 @@ const TimelineEntry = ({ data, isActive, onClick, index, language, showContent, 
                 </div>
               </div>
             </div>
-
-            {showContent && (
-              <div 
-                className="ml-0 md:ml-4 text-gray-700"
-                onMouseEnter={() => setIsHovered(true)}
-                onMouseLeave={() => setIsHovered(false)}
-              >
-                <div className="text-sm">
-                  <HighlightedText 
-                    text={data.description[language]}
-                    searchTerm={searchTerm}
-                    isCurrentMatch={isCurrentMatch}
-                  />
-                </div>
-                {isHovered && (
-                  <div className="mt-2 p-3 bg-white rounded-lg shadow-md border border-gray-200">
-                    <div className="text-sm">
-                      {data.description[language === 'en' ? 'ne' : 'en']}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
+{showContent && (
+  <div 
+    className="ml-0 md:ml-4 text-gray-700"
+    onMouseEnter={() => setIsHovered(true)}
+    onMouseLeave={() => setIsHovered(false)}
+  >
+    <div className="text-sm whitespace-pre-line"> {/* Add whitespace-pre-line here */}
+      <HighlightedText 
+        text={data.description[language]}
+        searchTerm={searchTerm}
+        isCurrentMatch={isCurrentMatch}
+      />
+    </div>
+    {isHovered && (
+      <div className="mt-2 p-3 bg-white rounded-lg shadow-md border border-gray-200">
+        <div className="text-sm whitespace-pre-line"> {/* Add whitespace-pre-line here too */}
+          {data.description[language === 'en' ? 'ne' : 'en']}
+        </div>
+      </div>
+    )}
+  </div>
+)}
           </div>
         </div>
       </div>
