@@ -551,6 +551,7 @@ category: "complaint"
 ]
  }
 };
+
 const CategoryIcon = ({ category }) => {
   const iconClass = "w-5 h-5";
   const getColor = () => {
