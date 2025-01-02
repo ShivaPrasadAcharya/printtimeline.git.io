@@ -80,13 +80,6 @@ const CategoryIcon = ({ category }) => {
   );
 };
   
-  return (
-    <div className={`${getColor()} p-1.5 rounded-full bg-opacity-10 bg-current`}>
-      <Info className={iconClass} />
-    </div>
-  );
-};
-
 const HighlightedText = ({ text, searchTerm, isCurrentMatch }) => {
   if (!searchTerm || !text) return <span>{text}</span>;
 
