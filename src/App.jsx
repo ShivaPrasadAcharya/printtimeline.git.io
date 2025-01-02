@@ -12,20 +12,73 @@ import {
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 
+import { 
+  FileText,    // for complaint
+  Building,    // for administration
+  Eye,         // for monitoring
+  Scale,       // for governance/court
+  HeartHandshake, // for service
+  Laptop,      // for digital
+  BarChart,    // for planning
+  HelpCircle   // default
+} from 'lucide-react';
+
 const CategoryIcon = ({ category }) => {
   const iconClass = "w-5 h-5";
-  const getColor = () => {
+  
+  const getIconStyle = () => {
     switch (category) {
-      case 'complaint': return 'text-red-500';
-      case 'administration': return 'text-blue-500';
-      case 'monitoring': return 'text-purple-500';
-      case 'governance': return 'text-green-500';
-      case 'service': return 'text-orange-500';
-      case 'digital': return 'text-cyan-500';
-      case 'planning': return 'text-yellow-500';
-      default: return 'text-gray-500';
+      case 'complaint':
+        return {
+          icon: FileText,
+          color: 'text-red-500'
+        };
+      case 'administration':
+        return {
+          icon: Building,
+          color: 'text-blue-500'
+        };
+      case 'monitoring':
+        return {
+          icon: Eye,
+          color: 'text-purple-500'
+        };
+      case 'governance':
+        return {
+          icon: Scale,
+          color: 'text-green-500'
+        };
+      case 'service':
+        return {
+          icon: HeartHandshake,
+          color: 'text-orange-500'
+        };
+      case 'digital':
+        return {
+          icon: Laptop,
+          color: 'text-cyan-500'
+        };
+      case 'planning':
+        return {
+          icon: BarChart,
+          color: 'text-yellow-500'
+        };
+      default:
+        return {
+          icon: HelpCircle,
+          color: 'text-gray-500'
+        };
     }
   };
+
+  const { icon: Icon, color } = getIconStyle();
+  
+  return (
+    <div className={`${color} p-1.5 rounded-full bg-opacity-10 bg-current`}>
+      <Icon className={iconClass} />
+    </div>
+  );
+};
   
   return (
     <div className={`${getColor()} p-1.5 rounded-full bg-opacity-10 bg-current`}>
