@@ -6,6 +6,20 @@ export const timelineGroups = {
       en: 'Public Service Reforms in Nepal',
       ne: 'नेपालमा सार्वजनिक सेवा सुधार'
     },
+    index: {
+      en: [
+        "1. Introduction",
+        "2. Early Reforms",
+        "3. Modern Period Reforms",
+        "4. Digital Transformation"
+      ],
+      ne: [
+        "१. परिचय",
+        "२. प्रारम्भिक सुधारहरू",
+        "३. आधुनिक कालका सुधारहरू",
+        "४. डिजिटल रूपान्तरण"
+      ]
+    },
     data: [
        {
     year: "Rana Period | राणा काल",
