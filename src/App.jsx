@@ -1,17 +1,22 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { Globe2, Info, Languages, ChevronDown, Download, Eye, EyeOff } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import { timelineGroups } from './timelineData';
 import { 
+  Globe2, 
+  Info, 
+  Languages, 
+  ChevronDown, 
+  Download, 
+  Eye, 
+  EyeOff,
   FileText,
   Building,
-  Eye,
   Scale,
   HeartHandshake,
   Laptop,
   BarChart,
   HelpCircle 
-} from 'lucide-react';  // Add this at the top with other imports
+} from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import { timelineGroups } from './timelineData';
 
 const CategoryIcon = ({ category }) => {
   const iconClass = "w-5 h-5";
