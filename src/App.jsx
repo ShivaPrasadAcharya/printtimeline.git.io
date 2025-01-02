@@ -552,6 +552,21 @@ category: "complaint"
  }
 };
 
+import React, { useState, useRef, useEffect } from 'react';
+import { Globe2, Info, Languages, ChevronDown, Download, Eye, EyeOff } from 'lucide-react';
+import { Card, CardContent } from '@/components/ui/card';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
+
+// Data structure for multiple timelines - keep your existing timelineGroups data here
+
 const CategoryIcon = ({ category }) => {
   const iconClass = "w-5 h-5";
   const getColor = () => {
@@ -574,7 +589,30 @@ const CategoryIcon = ({ category }) => {
   );
 };
 
-const TimelineEntry = ({ data, isActive, onClick, index, language, showContent }) => {
+const HighlightedText = ({ text, searchTerm, isCurrentMatch }) => {
+  if (!searchTerm || !text) return <span>{text}</span>;
+
+  const parts = text.split(new RegExp(`(${searchTerm})`, 'gi'));
+  return (
+    <span>
+      {parts.map((part, i) => {
+        if (part.toLowerCase() === searchTerm.toLowerCase()) {
+          return (
+            <mark 
+              key={i} 
+              className={`bg-yellow-200 ${isCurrentMatch ? 'ring-2 ring-blue-500' : ''}`}
+            >
+              {part}
+            </mark>
+          );
+        }
+        return part;
+      })}
+    </span>
+  );
+};
+
+const TimelineEntry = ({ data, isActive, onClick, index, language, showContent, searchTerm, isCurrentMatch }) => {
   const [isHovered, setIsHovered] = useState(false);
 
   return (
@@ -590,7 +628,6 @@ const TimelineEntry = ({ data, isActive, onClick, index, language, showContent }
 
         <div className="flex-1 pb-6">
           <div className="flex flex-col gap-2">
-            {/* Title Card */}
             <div 
               className={`cursor-pointer transition-all duration-300 ${
                 isActive 
@@ -604,15 +641,22 @@ const TimelineEntry = ({ data, isActive, onClick, index, language, showContent }
               <CategoryIcon category={data.category} />
               <div>
                 <div className="font-medium text-base">
-                  {data.year}
+                  <HighlightedText 
+                    text={data.year}
+                    searchTerm={searchTerm}
+                    isCurrentMatch={isCurrentMatch}
+                  />
                 </div>
                 <div className={`text-sm ${isActive ? 'text-blue-800' : 'text-gray-600'}`}>
-                  {data.title[language]}
+                  <HighlightedText 
+                    text={data.title[language]}
+                    searchTerm={searchTerm}
+                    isCurrentMatch={isCurrentMatch}
+                  />
                 </div>
               </div>
             </div>
 
-            {/* Description Section */}
             {showContent && (
               <div 
                 className="ml-0 md:ml-4 text-gray-700"
@@ -620,7 +664,11 @@ const TimelineEntry = ({ data, isActive, onClick, index, language, showContent }
                 onMouseLeave={() => setIsHovered(false)}
               >
                 <div className="text-sm">
-                  {data.description[language]}
+                  <HighlightedText 
+                    text={data.description[language]}
+                    searchTerm={searchTerm}
+                    isCurrentMatch={isCurrentMatch}
+                  />
                 </div>
                 {isHovered && (
                   <div className="mt-2 p-3 bg-white rounded-lg shadow-md border border-gray-200">
@@ -638,18 +686,7 @@ const TimelineEntry = ({ data, isActive, onClick, index, language, showContent }
   );
 };
 
-const Timeline = ({ timelineData, title, language, isActive, showContent }) => {
-  if (!timelineData.length) {
-    return (
-      <Card className="w-full max-w-3xl mx-auto mb-8">
-        <CardContent className="p-8 text-center">
-          <div className="text-gray-500">
-            No results found for your search.
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
+const Timeline = ({ timelineData, title, language, isActive, showContent, searchTerm, currentMatchIndex }) => {
   const [activeIndex, setActiveIndex] = useState(0);
   const timelineRef = useRef(null);
 
@@ -669,6 +706,8 @@ const Timeline = ({ timelineData, title, language, isActive, showContent }) => {
   };
 
   if (!isActive) return null;
+
+  let currentMatch = 0;
 
   return (
     <Card className="w-full max-w-3xl mx-auto mb-8">
@@ -696,17 +735,32 @@ const Timeline = ({ timelineData, title, language, isActive, showContent }) => {
         </div>
         
         <div className="relative max-w-3xl mx-auto">
-          {timelineData.map((entry, index) => (
-            <TimelineEntry
-              key={entry.year}
-              data={entry}
-              isActive={index === activeIndex}
-              onClick={() => setActiveIndex(index)}
-              index={index}
-              language={language}
-              showContent={showContent}
-            />
-          ))}
+          {timelineData.map((entry, index) => {
+            const entryText = [
+              entry.year,
+              entry.title.en,
+              entry.title.ne,
+              entry.description.en,
+              entry.description.ne
+            ].join(' ').toLowerCase();
+
+            const hasMatch = searchTerm && entryText.includes(searchTerm.toLowerCase());
+            if (hasMatch) currentMatch++;
+
+            return (
+              <TimelineEntry
+                key={entry.year}
+                data={entry}
+                isActive={index === activeIndex}
+                onClick={() => setActiveIndex(index)}
+                index={index}
+                language={language}
+                showContent={showContent}
+                searchTerm={searchTerm}
+                isCurrentMatch={hasMatch && currentMatch === currentMatchIndex}
+              />
+            );
+          })}
         </div>
       </CardContent>
     </Card>
@@ -721,35 +775,22 @@ function App() {
   const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
   const [matchCount, setMatchCount] = useState(0);
 
-  // Function to find matches in text
-  const findMatches = (text) => {
-    if (!searchTerm) return null;
-    const regex = new RegExp(`(${searchTerm})`, 'gi');
-    return text.replace(regex, '<mark class="bg-yellow-200">$1</mark>');
-  };
-
-  // Function to count total matches in a timeline
-  const countMatches = (data) => {
-    if (!searchTerm) return 0;
-    let count = 0;
-    data.forEach(item => {
-      const searchFields = [
-        item.year,
-        item.title.en, item.title.ne,
-        item.description.en, item.description.ne
-      ];
-      searchFields.forEach(field => {
-        const matches = (field?.toString() || '').match(new RegExp(searchTerm, 'gi'));
-        if (matches) count += matches.length;
-      });
-    });
-    return count;
-  };
-
-  // Update match count when search term changes
   useEffect(() => {
     if (searchTerm) {
-      const count = countMatches(timelineGroups[activeTimeline].data);
+      let count = 0;
+      timelineGroups[activeTimeline].data.forEach(item => {
+        const text = [
+          item.year,
+          item.title.en,
+          item.title.ne,
+          item.description.en,
+          item.description.ne
+        ].join(' ').toLowerCase();
+        
+        if (text.includes(searchTerm.toLowerCase())) {
+          count++;
+        }
+      });
       setMatchCount(count);
       setCurrentMatchIndex(count > 0 ? 1 : 0);
     } else {
@@ -758,32 +799,30 @@ function App() {
     }
   }, [searchTerm, activeTimeline]);
 
-  // Search function that checks all fields in both languages
-  const filterTimelineData = (data) => {
-    if (!searchTerm) return data;
-    
-    return data.filter(item => {
-      const searchFields = [
-        item.year,
-        item.title.en.toLowerCase(),
-        item.title.ne.toLowerCase(),
-        item.description.en.toLowerCase(),
-        item.description.ne.toLowerCase()
-      ];
-      
-      return searchFields.some(field => 
-        field.toString().toLowerCase().includes(searchTerm.toLowerCase())
-      );
-    });
+  const nextMatch = () => {
+    setCurrentMatchIndex(prev => prev < matchCount ? prev + 1 : 1);
+  };
+
+  const prevMatch = () => {
+    setCurrentMatchIndex(prev => prev > 1 ? prev - 1 : matchCount);
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      {/* Fixed Header */}
       <div className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 shadow-sm z-50">
         <div className="max-w-7xl mx-auto px-4 py-3">
-          <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6">
+          <div className="flex flex-col md:flex-row items-center gap-4">
             <div className="flex items-center gap-4 w-full md:w-auto">
+              <button 
+                onClick={() => setLanguage(prev => prev === 'en' ? 'ne' : 'en')}
+                className="flex items-center gap-2 px-4 py-2 rounded-full bg-white shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200"
+              >
+                <Globe2 className="w-5 h-5 text-blue-600" />
+                <span className="font-medium">
+                  {language === 'en' ? 'नेपाली' : 'English'}
+                </span>
+              </button>
+
               <div className="relative flex-1 md:w-[400px]">
                 <input
                   type="text"
@@ -816,7 +855,7 @@ function App() {
                         <span>{currentMatchIndex}/{matchCount}</span>
                         <div className="flex gap-1">
                           <button
-                            onClick={() => setCurrentMatchIndex(prev => prev > 1 ? prev - 1 : matchCount)}
+                            onClick={prevMatch}
                             className="p-1 hover:bg-gray-100 rounded-full"
                           >
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -824,7 +863,7 @@ function App() {
                             </svg>
                           </button>
                           <button
-                            onClick={() => setCurrentMatchIndex(prev => prev < matchCount ? prev + 1 : 1)}
+                            onClick={nextMatch}
                             className="p-1 hover:bg-gray-100 rounded-full"
                           >
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -857,15 +896,6 @@ function App() {
                 )}
               </div>
             </div>
-            <button 
-              onClick={() => setLanguage(prev => prev === 'en' ? 'ne' : 'en')}
-              className="flex items-center gap-2 px-4 py-2 rounded-full bg-white shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200"
-            >
-              <Globe2 className="w-5 h-5 text-blue-600" />
-              <span className="font-medium">
-                {language === 'en' ? 'नेपाली' : 'English'}
-              </span>
-            </button>
 
             <Select value={activeTimeline} onValueChange={setActiveTimeline}>
               <SelectTrigger className="w-[280px] bg-white">
@@ -877,8 +907,7 @@ function App() {
                 {Object.values(timelineGroups).map((timeline) => (
                   <SelectItem key={timeline.id} value={timeline.id}>
                     {timeline.title[language]}
-                  </SelectItem>
-                ))}
+                  </SelectItem>))}
               </SelectContent>
             </Select>
 
@@ -902,16 +931,17 @@ function App() {
         </div>
       </div>
 
-      {/* Main Content */}
       <div className="pt-20 px-4 pb-6">
         {Object.values(timelineGroups).map((timeline) => (
           <Timeline
             key={timeline.id}
-            timelineData={filterTimelineData(timeline.data)}
+            timelineData={timeline.data}
             title={timeline.title}
             language={language}
             isActive={activeTimeline === timeline.id}
             showContent={showContent}
+            searchTerm={searchTerm}
+            currentMatchIndex={currentMatchIndex}
           />
         ))}
       </div>
