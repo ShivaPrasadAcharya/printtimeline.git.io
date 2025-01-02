@@ -644,24 +644,22 @@ const TimelineEntry = ({ data, isActive, onClick, index, language, showContent }
               </div>
             </div>
 
-            {showContent && (
-              <div 
+            <div 
                 onMouseEnter={handleMouseEnter} 
                 onMouseLeave={handleMouseLeave}
-                className="timeline-description"
+                className={`timeline-description transition-all duration-300 ${showContent ? 'opacity-100 visible' : 'opacity-0 invisible h-0'}`}
               >
-                <div className="hidden-print-content">
-                  <p>{data.description[language]}</p>
+                <div className={`${showContent ? 'block' : 'hidden'}`}>
+                  <p className="text-gray-700 text-sm">{data.description[language]}</p>
                 </div>
                 <HoverCard 
                   description={data.description} 
                   title={data.title}
                   containerRef={hoverContainerRef}
-                  isHovered={isHovered}
+                  isHovered={isHovered && showContent}
                   language={language}
                 />
               </div>
-            )}
           </div>
         </div>
       </div>
@@ -787,6 +785,18 @@ function App() {
   const [language, setLanguage] = useState('en');
   const [activeTimeline, setActiveTimeline] = useState(Object.keys(timelineGroups)[0]);
   const [showContent, setShowContent] = useState(true);
+
+  // Add transition styles for content visibility
+  React.useEffect(() => {
+    const style = document.createElement('style');
+    style.textContent = `
+      .timeline-description {
+        transition: opacity 0.3s ease-in-out, visibility 0.3s ease-in-out;
+      }
+    `;
+    document.head.appendChild(style);
+    return () => document.head.removeChild(style);
+  }, []);
 
   const toggleLanguage = () => {
     setLanguage(prev => prev === 'en' ? 'ne' : 'en');
