@@ -321,43 +321,45 @@ function App() {
   const [searchTerm, setSearchTerm] = useState('');
   const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
   const [matchCount, setMatchCount] = useState(0);
+  const [isHeaderExpanded, setIsHeaderExpanded] = useState(false);
 
-  useEffect(() => {
-    if (searchTerm) {
-      let count = 0;
-      timelineGroups[activeTimeline].data.forEach(item => {
-        const text = [
-          item.year,
-          item.title.en,
-          item.title.ne,
-          item.description.en,
-          item.description.ne
-        ].join(' ').toLowerCase();
-        
-        if (text.includes(searchTerm.toLowerCase())) {
-          count++;
-        }
-      });
-      setMatchCount(count);
-      setCurrentMatchIndex(count > 0 ? 1 : 0);
-    } else {
-      setMatchCount(0);
-      setCurrentMatchIndex(0);
-    }
-  }, [searchTerm, activeTimeline]);
-
-  const nextMatch = () => {
-    setCurrentMatchIndex(prev => prev < matchCount ? prev + 1 : 1);
-  };
-
-  const prevMatch = () => {
-    setCurrentMatchIndex(prev => prev > 1 ? prev - 1 : matchCount);
+  // Function to handle header hover
+  const handleHeaderHover = (expanded) => {
+    setIsHeaderExpanded(expanded);
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
-      <div className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 shadow-sm z-50">
-        <div className="max-w-7xl mx-auto px-4 py-3">
+      {/* Collapsed Header - Always visible */}
+      <div 
+        className="fixed top-0 left-0 right-0 bg-white border-b border-gray-200 shadow-sm z-50 transition-all duration-300"
+        onMouseEnter={() => handleHeaderHover(true)}
+        onMouseLeave={() => handleHeaderHover(false)}
+      >
+        {/* Collapsed Content */}
+        <div className={`max-w-7xl mx-auto px-4 py-3 ${isHeaderExpanded ? 'hidden' : 'block'}`}>
+          <div className="flex items-center justify-between">
+            <Menu className="w-6 h-6 text-gray-600" />
+            <div className="flex items-center gap-2">
+              <button 
+                onClick={() => setLanguage(prev => prev === 'en' ? 'ne' : 'en')}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-full bg-white shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200"
+              >
+                <Globe2 className="w-4 h-4 text-blue-600" />
+                <span className="font-medium text-sm">
+                  {language === 'en' ? 'नेपाली' : 'English'}
+                </span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Expanded Header */}
+        <div 
+          className={`max-w-7xl mx-auto px-4 py-3 transition-all duration-300 ${
+            isHeaderExpanded ? 'opacity-100 transform translate-y-0' : 'opacity-0 transform -translate-y-2 pointer-events-none h-0'
+          }`}
+        >
           <div className="flex flex-col md:flex-row items-center gap-4">
             <div className="flex items-center gap-4 w-full md:w-auto">
               <button 
@@ -444,7 +446,7 @@ function App() {
               </div>
             </div>
 
-             <Select value={activeTimeline} onValueChange={setActiveTimeline}>
+            <Select value={activeTimeline} onValueChange={setActiveTimeline}>
               <SelectTrigger className="w-[280px] bg-white">
                 <SelectValue placeholder="Select Timeline">
                   {timelineGroups[activeTimeline].title[language]}
@@ -479,13 +481,14 @@ function App() {
         </div>
       </div>
 
-      <div className="pt-20 px-4 pb-6">
+      {/* Adjust the top padding based on header state */}
+      <div className={`${isHeaderExpanded ? 'pt-32' : 'pt-16'} px-4 pb-6`}>
         {Object.values(timelineGroups).map((timeline) => (
           <Timeline
             key={timeline.id}
             timelineData={timeline.data}
             title={timeline.title}
-            index={timeline.index}  // New prop
+            index={timeline.index}
             language={language}
             isActive={activeTimeline === timeline.id}
             showContent={showContent}
