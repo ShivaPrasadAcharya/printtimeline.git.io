@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Globe2, Info, Languages, ChevronDown, Download, Eye, EyeOff } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
+import { timelineGroups } from './timelineData';
 import {
   Select,
   SelectContent,
