@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Globe2, Info, Languages, ChevronDown, Download, Eye, EyeOff } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import {
@@ -552,20 +552,6 @@ category: "complaint"
  }
 };
 
-import React, { useState, useRef, useEffect } from 'react';
-import { Globe2, Info, Languages, ChevronDown, Download, Eye, EyeOff } from 'lucide-react';
-import { Card, CardContent } from '@/components/ui/card';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
-
-// Data structure for multiple timelines - keep your existing timelineGroups data here
 
 const CategoryIcon = ({ category }) => {
   const iconClass = "w-5 h-5";
