@@ -18,6 +18,7 @@ import {
 import { Card, CardContent } from '@/components/ui/card';
 import { timelineGroups } from './timelineData';
 
+
 const CategoryIcon = ({ category }) => {
   const iconClass = "w-5 h-5";
   
