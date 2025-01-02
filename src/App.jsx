@@ -160,18 +160,13 @@ const Timeline = ({ timelineData, title, language, isActive, showContent, search
           <h2 className="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
             {title[language]}
           </h2>
-          <div className="flex gap-2">
-            <button
-              onClick={() => exportToPDF('en')}
-              className="flex items-center gap-1 px-3 py-1.5 text-sm rounded-md bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors border border-blue-200"
-            >
-              <Download className="w-4 h-4" />
-              Export 
-            </button>
-              <Download className="w-4 h-4" />
-              Export (NE)
-            </button>
-          </div>
+          <button
+  onClick={() => exportToPDF(language)}
+  className="flex items-center gap-1 px-3 py-1.5 text-sm rounded-md bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors border border-blue-200"
+>
+  <Download className="w-4 h-4" />
+  Export PDF
+</button>
         </div>
         
         <div className="relative max-w-3xl mx-auto">
