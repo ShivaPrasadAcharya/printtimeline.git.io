@@ -717,7 +717,45 @@ function App() {
   const [activeTimeline, setActiveTimeline] = useState(Object.keys(timelineGroups)[0]);
   const [showContent, setShowContent] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [isSearching, setIsSearching] = useState(false);
+  const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
+  const [matchCount, setMatchCount] = useState(0);
+
+  // Function to find matches in text
+  const findMatches = (text) => {
+    if (!searchTerm) return null;
+    const regex = new RegExp(`(${searchTerm})`, 'gi');
+    return text.replace(regex, '<mark class="bg-yellow-200">$1</mark>');
+  };
+
+  // Function to count total matches in a timeline
+  const countMatches = (data) => {
+    if (!searchTerm) return 0;
+    let count = 0;
+    data.forEach(item => {
+      const searchFields = [
+        item.year,
+        item.title.en, item.title.ne,
+        item.description.en, item.description.ne
+      ];
+      searchFields.forEach(field => {
+        const matches = (field?.toString() || '').match(new RegExp(searchTerm, 'gi'));
+        if (matches) count += matches.length;
+      });
+    });
+    return count;
+  };
+
+  // Update match count when search term changes
+  useEffect(() => {
+    if (searchTerm) {
+      const count = countMatches(timelineGroups[activeTimeline].data);
+      setMatchCount(count);
+      setCurrentMatchIndex(count > 0 ? 1 : 0);
+    } else {
+      setMatchCount(0);
+      setCurrentMatchIndex(0);
+    }
+  }, [searchTerm, activeTimeline]);
 
   // Search function that checks all fields in both languages
   const filterTimelineData = (data) => {
@@ -745,16 +783,13 @@ function App() {
         <div className="max-w-7xl mx-auto px-4 py-3">
           <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6">
             <div className="flex items-center gap-4 w-full md:w-auto">
-              <div className="relative flex-1 md:w-80">
+              <div className="relative flex-1 md:w-[400px]">
                 <input
                   type="text"
                   value={searchTerm}
-                  onChange={(e) => {
-                    setSearchTerm(e.target.value);
-                    setIsSearching(e.target.value.length > 0);
-                  }}
+                  onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder="Search timeline..."
-                  className="w-full px-4 py-2 pl-10 pr-4 rounded-full border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-300"
+                  className="w-full px-4 py-2 pl-10 pr-24 rounded-full border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-300"
                 />
                 <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
                   <svg
@@ -772,29 +807,52 @@ function App() {
                     />
                   </svg>
                 </div>
+                
                 {searchTerm && (
-                  <button
-                    onClick={() => {
-                      setSearchTerm('');
-                      setIsSearching(false);
-                    }}
-                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                  >
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      className="h-5 w-5"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
+                    {matchCount > 0 && (
+                      <div className="flex items-center gap-1 text-sm text-gray-600">
+                        <span>{currentMatchIndex}/{matchCount}</span>
+                        <div className="flex gap-1">
+                          <button
+                            onClick={() => setCurrentMatchIndex(prev => prev > 1 ? prev - 1 : matchCount)}
+                            className="p-1 hover:bg-gray-100 rounded-full"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={() => setCurrentMatchIndex(prev => prev < matchCount ? prev + 1 : 1)}
+                            className="p-1 hover:bg-gray-100 rounded-full"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                    <button
+                      onClick={() => setSearchTerm('')}
+                      className="p-1 hover:bg-gray-100 rounded-full text-gray-400 hover:text-gray-600"
                     >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M6 18L18 6M6 6l12 12"
-                      />
-                    </svg>
-                  </button>
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M6 18L18 6M6 6l12 12"
+                        />
+                      </svg>
+                    </button>
+                  </div>
                 )}
               </div>
             </div>
