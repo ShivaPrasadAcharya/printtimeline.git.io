@@ -422,8 +422,7 @@ function App() {
     </div>
   )}
 </div>
-            </div>
-
+       
             <Select value={activeTimeline} onValueChange={setActiveTimeline}>
               <SelectTrigger className="w-[280px] bg-white">
                 <SelectValue placeholder="Select Timeline">
