@@ -2,26 +2,16 @@ import React, { useState, useRef, useEffect } from 'react';
 import { Globe2, Info, Languages, ChevronDown, Download, Eye, EyeOff } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { timelineGroups } from './timelineData';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
-
 import { 
-  FileText,    // for complaint
-  Building,    // for administration
-  Eye,         // for monitoring
-  Scale,       // for governance/court
-  HeartHandshake, // for service
-  Laptop,      // for digital
-  BarChart,    // for planning
-  HelpCircle   // default
-} from 'lucide-react';
+  FileText,
+  Building,
+  Eye,
+  Scale,
+  HeartHandshake,
+  Laptop,
+  BarChart,
+  HelpCircle 
+} from 'lucide-react';  // Add this at the top with other imports
 
 const CategoryIcon = ({ category }) => {
   const iconClass = "w-5 h-5";
