@@ -1,5 +1,5 @@
 import React, { useState, useRef } from 'react';
-import { Globe2, Info, Languages, ChevronDown, Download } from 'lucide-react';
+import { Globe2, Info, Languages, ChevronDown, Download, Eye, EyeOff } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import {
   Select,
@@ -9,7 +9,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
+import { loadNepaliFont } from '../utils/fontLoader';
 
 // Data structure for multiple timelines
 const timelineGroups = {
@@ -573,68 +573,26 @@ const CategoryIcon = ({ category }) => {
   );
 };
 
-const HoverCard = ({ description, title, containerRef, isHovered }) => {
-  const [isFlipped, setIsFlipped] = useState(false);
-  
+const HoverCard = ({ description, isHovered }) => {
   if (!isHovered) return null;
   
   return (
-    <div className="ml-2 mt-2" ref={containerRef}>
-      <div className="bg-white p-3 rounded-lg shadow-lg border border-gray-200">
-        <div className="flex justify-between items-center mb-2">
-          <h4 className="font-semibold text-sm text-gray-600">
-            {isFlipped ? 'नेपाली' : 'English'}
-          </h4>
-          <button 
-            onClick={() => setIsFlipped(!isFlipped)}
-            className="p-1.5 hover:bg-gray-100 rounded-full transition-colors"
-            aria-label="Switch language"
-          >
-            <Languages className="w-4 h-4 text-blue-600" />
-          </button>
-        </div>
-        <div className="relative min-h-[60px]">
-          <div className={`transition-opacity duration-300 ${isFlipped ? 'opacity-0' : 'opacity-100'}`}>
-            <p className="text-sm text-gray-700" data-language data-en={description.en} data-ne={description.ne}>
-              {description.en}
-            </p>
-          </div>
-          <div className={`absolute top-0 left-0 w-full transition-opacity duration-300 ${isFlipped ? 'opacity-100' : 'opacity-0'}`}>
-            <p className="text-sm text-gray-700">
-              {description.ne}
-            </p>
-          </div>
-        </div>
+    <div className="ml-2 mt-2 absolute left-full top-0 z-10">
+      <div className="bg-white p-3 rounded-lg shadow-lg border border-gray-200 w-64">
+        <div className="text-sm text-gray-700">{description}</div>
       </div>
     </div>
   );
 };
 
-const TimelineEntry = ({ data, isActive, onClick, index, language }) => {
+const TimelineEntry = ({ data, isActive, onClick, index, language, showContent }) => {
   const [isHovered, setIsHovered] = useState(false);
-  const hoverContainerRef = React.useRef(null);
   const timelineEntryRef = React.useRef(null);
 
-  const handleMouseEnter = () => setIsHovered(true);
-  const handleMouseLeave = (e) => {
-    const timelineRect = timelineEntryRef.current?.getBoundingClientRect();
-    const hoverRect = hoverContainerRef.current?.getBoundingClientRect();
-    
-    if (timelineRect && hoverRect) {
-      const isMovingToHoverCard = 
-        e.clientX >= hoverRect.left && 
-        e.clientX <= hoverRect.right && 
-        e.clientY >= Math.min(timelineRect.top, hoverRect.top) && 
-        e.clientY <= Math.max(timelineRect.bottom, hoverRect.bottom);
-      
-      if (!isMovingToHoverCard) {
-        setIsHovered(false);
-      }
-    }
-  };
-
+  const getOtherLanguage = () => language === 'en' ? 'ne' : 'en';
+  
   return (
-    <div className="relative group" ref={timelineEntryRef} data-timeline-entry>
+    <div className="relative group" ref={timelineEntryRef}>
       <div className="flex items-start gap-3">
         <div className="absolute left-4 top-8 bottom-0 w-0.5 bg-gray-200" />
         
@@ -647,48 +605,44 @@ const TimelineEntry = ({ data, isActive, onClick, index, language }) => {
         <div className="flex-1 pb-6">
           <div className="flex flex-col md:flex-row gap-2">
             <div 
-              className={`cursor-pointer transition-all duration-300 ${
+              className={`relative cursor-pointer transition-all duration-300 ${
                 isActive 
                   ? 'bg-blue-50 border-blue-500 shadow-sm' 
                   : 'bg-white hover:bg-gray-50 border-gray-200'
               } border rounded-lg p-3 flex items-center gap-3 md:w-64`}
               onClick={onClick}
-              onMouseEnter={handleMouseEnter}
-              onMouseLeave={handleMouseLeave}
+              onMouseEnter={() => setIsHovered(true)}
+              onMouseLeave={() => setIsHovered(false)}
             >
               <CategoryIcon category={data.category} />
               <div>
-                <div className="font-medium text-base" data-language data-en={data.year} data-ne={data.year}>
+                <div className="font-medium text-base">
                   {data.year}
                 </div>
-                <div 
-                  className={`text-sm ${isActive ? 'text-blue-800' : 'text-gray-600'}`}
-                  data-language
-                  data-en={data.title.en}
-                  data-ne={data.title.ne}
-                >
-                  {language === 'en' ? data.title.en : data.title.ne}
+                <div className={`text-sm ${isActive ? 'text-blue-800' : 'text-gray-600'} relative`}>
+                  {data.title[language]}
+                  {isHovered && (
+                    <div className="absolute top-0 left-0 bg-white p-1 rounded shadow">
+                      {data.title[getOtherLanguage()]}
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
 
-            <div 
-              onMouseEnter={handleMouseEnter} 
-              onMouseLeave={() => setIsHovered(false)}
-              className="timeline-description"
-            >
-              <div className="hidden-print-content">
-                <p data-language data-en={data.description.en} data-ne={data.description.ne}>
-                  {language === 'en' ? data.description.en : data.description.ne}
+            {showContent && (
+              <div className="timeline-description relative">
+                <p className="text-sm text-gray-700">
+                  {data.description[language]}
+                  {isHovered && (
+                    <HoverCard 
+                      description={data.description[getOtherLanguage()]}
+                      isHovered={isHovered}
+                    />
+                  )}
                 </p>
               </div>
-              <HoverCard 
-                description={data.description} 
-                title={data.title}
-                containerRef={hoverContainerRef}
-                isHovered={isHovered}
-              />
-            </div>
+            )}
           </div>
         </div>
       </div>
@@ -696,74 +650,11 @@ const TimelineEntry = ({ data, isActive, onClick, index, language }) => {
   );
 };
 
-const Timeline = ({ timelineData, title, language, isActive }) => {
+const Timeline = ({ timelineData, title, language, isActive, showContent }) => {
   const [activeIndex, setActiveIndex] = useState(0);
   const timelineRef = useRef(null);
 
-  const exportToPDF = async (exportLanguage) => {
-    const pdf = new jsPDF('p', 'mm', 'a4');
-    const timeline = timelineRef.current;
-    
-    // Configure PDF
-    pdf.setFont('helvetica');
-    pdf.setFontSize(16);
-    
-    // Add title
-    const titleText = title[exportLanguage];
-    pdf.text(titleText, 20, 20);
-    
-    let currentY = 40;
-    const pageHeight = pdf.internal.pageSize.height;
-    const margin = 20;
-    const lineHeight = 7;
-    
-    // Iterate through timeline entries
-    timelineData.forEach((entry, index) => {
-      // Check if we need a new page
-      if (currentY > pageHeight - margin) {
-        pdf.addPage();
-        currentY = margin;
-      }
-      
-      // Add year and title
-      pdf.setFontSize(12);
-      pdf.setFont('helvetica', 'bold');
-      const yearText = entry.year;
-      pdf.text(yearText, margin, currentY);
-      currentY += lineHeight;
-      
-      // Add title
-      const entryTitle = entry.title[exportLanguage];
-      pdf.text(entryTitle, margin, currentY);
-      currentY += lineHeight;
-      
-      // Add description
-      pdf.setFontSize(10);
-      pdf.setFont('helvetica', 'normal');
-      const description = entry.description[exportLanguage];
-      
-      // Split description into lines that fit the page width
-      const splitDescription = pdf.splitTextToSize(description, pdf.internal.pageSize.width - (margin * 2));
-      
-      // Check if description will fit on current page
-      if (currentY + (splitDescription.length * lineHeight) > pageHeight - margin) {
-        pdf.addPage();
-        currentY = margin;
-      }
-      
-      // Add description lines
-      splitDescription.forEach(line => {
-        pdf.text(line, margin, currentY);
-        currentY += lineHeight;
-      });
-      
-      // Add spacing between entries
-      currentY += lineHeight;
-    });
-    
-    // Save the PDF
-    pdf.save(`${title[exportLanguage].replace(/\s+/g, '-').toLowerCase()}.pdf`);
-  };
+  // ... (keep your existing exportToPDF function)
 
   if (!isActive) return null;
 
@@ -772,7 +663,7 @@ const Timeline = ({ timelineData, title, language, isActive }) => {
       <CardContent className="p-4" ref={timelineRef}>
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl md:text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-purple-600">
-            {language === 'en' ? title.en : title.ne}
+            {title[language]}
           </h2>
           <div className="flex gap-2">
             <button
@@ -801,6 +692,7 @@ const Timeline = ({ timelineData, title, language, isActive }) => {
               onClick={() => setActiveIndex(index)}
               index={index}
               language={language}
+              showContent={showContent}
             />
           ))}
         </div>
@@ -812,53 +704,72 @@ const Timeline = ({ timelineData, title, language, isActive }) => {
 function App() {
   const [language, setLanguage] = useState('en');
   const [activeTimeline, setActiveTimeline] = useState(Object.keys(timelineGroups)[0]);
+  const [showContent, setShowContent] = useState(true);
 
   const toggleLanguage = () => {
     setLanguage(prev => prev === 'en' ? 'ne' : 'en');
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-6 px-3">
-      <div className="w-full max-w-3xl mx-auto mb-6">
-        <div className="flex flex-col md:flex-row justify-between items-center gap-4 mb-6">
-          <button 
-            onClick={toggleLanguage}
-            className="flex items-center gap-2 px-4 py-2 rounded-full bg-white shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200"
-          >
-            <Globe2 className="w-5 h-5 text-blue-600" />
-            <span className="font-medium">
-              {language === 'en' ? 'नेपाली' : 'English'}
-            </span>
-          </button>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
+      {/* Fixed Header */}
+      <div className="fixed top-0 left-0 right-0 bg-white shadow-md z-50">
+        <div className="max-w-3xl mx-auto px-4 py-3">
+          <div className="flex items-center justify-between gap-4">
+            <button 
+              onClick={toggleLanguage}
+              className="flex items-center gap-2 px-4 py-2 rounded-full bg-white shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200"
+            >
+              <Globe2 className="w-5 h-5 text-blue-600" />
+              <span className="font-medium">
+                {language === 'en' ? 'नेपाली' : 'English'}
+              </span>
+            </button>
 
-          <Select value={activeTimeline} onValueChange={setActiveTimeline}>
-            <SelectTrigger className="w-[280px] bg-white">
-              <SelectValue placeholder="Select Timeline">
-                {language === 'en' 
-                  ? timelineGroups[activeTimeline].title.en 
-                  : timelineGroups[activeTimeline].title.ne}
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent>
-              {Object.values(timelineGroups).map((timeline) => (
-                <SelectItem key={timeline.id} value={timeline.id}>
-                  {language === 'en' ? timeline.title.en : timeline.title.ne}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+            <Select value={activeTimeline} onValueChange={setActiveTimeline}>
+              <SelectTrigger className="w-[280px] bg-white">
+                <SelectValue placeholder="Select Timeline">
+                  {language === 'en' 
+                    ? timelineGroups[activeTimeline].title.en 
+                    : timelineGroups[activeTimeline].title.ne}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {Object.values(timelineGroups).map((timeline) => (
+                  <SelectItem key={timeline.id} value={timeline.id}>
+                    {language === 'en' ? timeline.title.en : timeline.title.ne}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
+            <button 
+              onClick={() => setShowContent(!showContent)}
+              className="flex items-center gap-2 px-4 py-2 rounded-full bg-white shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200"
+            >
+              {showContent ? (
+                <EyeOff className="w-5 h-5 text-gray-600" />
+              ) : (
+                <Eye className="w-5 h-5 text-blue-600" />
+              )}
+            </button>
+          </div>
         </div>
       </div>
 
-      {Object.values(timelineGroups).map((timeline) => (
-        <Timeline
-          key={timeline.id}
-          timelineData={timeline.data}
-          title={timeline.title}
-          language={language}
-          isActive={activeTimeline === timeline.id}
-        />
-      ))}
+      {/* Main Content with padding for fixed header */}
+      <div className="pt-20 px-3 pb-6">
+        {Object.values(timelineGroups).map((timeline) => (
+          <Timeline
+            key={timeline.id}
+            timelineData={timeline.data}
+            title={timeline.title}
+            language={language}
+            isActive={activeTimeline === timeline.id}
+            showContent={showContent}
+          />
+        ))}
+      </div>
     </div>
   );
 }
