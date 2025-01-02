@@ -17,6 +17,15 @@ import {
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { timelineGroups } from './timelineData';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 
 
 const CategoryIcon = ({ category }) => {
