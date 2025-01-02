@@ -744,12 +744,12 @@ function App() {
               {showContent ? (
                 <>
                   <EyeOff className="w-5 h-5 text-blue-600" />
-                  <span className="font-medium">Hide Content</span>
+                  <span className="font-medium">  </span>
                 </>
               ) : (
                 <>
                   <Eye className="w-5 h-5 text-blue-600" />
-                  <span className="font-medium">Show Content</span>
+                  <span className="font-medium"></span>
                 </>
               )}
             </button>
