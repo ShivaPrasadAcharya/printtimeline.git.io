@@ -669,6 +669,7 @@ const TimelineEntry = ({ data, isActive, onClick, index, language, showContent }
   );
 };
 
+
 const Timeline = ({ timelineData, title, language, isActive }) => {
   const [activeIndex, setActiveIndex] = useState(0);
   const timelineRef = useRef(null);
