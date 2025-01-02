@@ -13,7 +13,9 @@ import {
   HeartHandshake,
   Laptop,
   BarChart,
-  HelpCircle 
+  HelpCircle,
+  ChevronRight,  // New icon for index
+  ListFilter      // New icon for index
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { timelineGroups } from './timelineData';
@@ -115,6 +117,48 @@ const HighlightedText = ({ text, searchTerm, isCurrentMatch }) => {
     </span>
   );
 };
+const IndexSection = ({ index, language, onIndexClick }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+
+  if (!index || !index[language]) {
+    return null;
+  }
+
+  return (
+    <div className="mb-6">
+      <button
+        onClick={() => setIsExpanded(!isExpanded)}
+        className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-600 rounded-lg hover:bg-blue-100 transition-colors w-full"
+      >
+        {isExpanded ? (
+          <ChevronDown className="w-5 h-5" />
+        ) : (
+          <ChevronRight className="w-5 h-5" />
+        )}
+        <ListFilter className="w-5 h-5" />
+        <span className="font-medium">
+          {language === 'en' ? 'Index' : 'सूची'}
+        </span>
+      </button>
+      
+      {isExpanded && (
+        <div className="mt-4 pl-4 pr-2">
+          <ul className="space-y-2">
+            {index[language].map((item, idx) => (
+              <li 
+                key={idx}
+                className="cursor-pointer hover:text-blue-600 transition-colors text-sm"
+                onClick={() => onIndexClick(idx)}
+              >
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
+  );
+};
 
 const TimelineEntry = ({ data, isActive, onClick, index, language, showContent, searchTerm, isCurrentMatch }) => {
   const [isHovered, setIsHovered] = useState(false);
@@ -189,13 +233,16 @@ const TimelineEntry = ({ data, isActive, onClick, index, language, showContent, 
   );
 };
 
-const Timeline = ({ timelineData, title, language, isActive, showContent, searchTerm, currentMatchIndex }) => {
+const Timeline = ({ timelineData, title, index, language, isActive, showContent, searchTerm, currentMatchIndex }) => {
   const [activeIndex, setActiveIndex] = useState(0);
   const timelineRef = useRef(null);
 
+  const handleIndexClick = (idx) => {
+    setActiveIndex(idx);
+  };
+
   const exportToPDF = async (exportLanguage) => {
     const pdf = new jsPDF('p', 'mm', 'a4');
-    
     if (timelineRef.current) {
       try {
         const canvas = await html2canvas(timelineRef.current);
@@ -220,13 +267,19 @@ const Timeline = ({ timelineData, title, language, isActive, showContent, search
             {title[language]}
           </h2>
           <button
-  onClick={() => exportToPDF(language)}
-  className="flex items-center gap-1 px-3 py-1.5 text-sm rounded-md bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors border border-blue-200"
->
-  <Download className="w-4 h-4" />
-  Export PDF
-</button>
+            onClick={() => exportToPDF(language)}
+            className="flex items-center gap-1 px-3 py-1.5 text-sm rounded-md bg-blue-50 text-blue-600 hover:bg-blue-100 transition-colors border border-blue-200"
+          >
+            <Download className="w-4 h-4" />
+            Export PDF
+          </button>
         </div>
+
+        <IndexSection 
+          index={index}
+          language={language}
+          onIndexClick={handleIndexClick}
+        />
         
         <div className="relative max-w-3xl mx-auto">
           {timelineData.map((entry, index) => {
@@ -391,7 +444,7 @@ function App() {
               </div>
             </div>
 
-            <Select value={activeTimeline} onValueChange={setActiveTimeline}>
+             <Select value={activeTimeline} onValueChange={setActiveTimeline}>
               <SelectTrigger className="w-[280px] bg-white">
                 <SelectValue placeholder="Select Timeline">
                   {timelineGroups[activeTimeline].title[language]}
@@ -401,7 +454,8 @@ function App() {
                 {Object.values(timelineGroups).map((timeline) => (
                   <SelectItem key={timeline.id} value={timeline.id}>
                     {timeline.title[language]}
-                  </SelectItem>))}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
 
@@ -431,6 +485,7 @@ function App() {
             key={timeline.id}
             timelineData={timeline.data}
             title={timeline.title}
+            index={timeline.index}  // New prop
             language={language}
             isActive={activeTimeline === timeline.id}
             showContent={showContent}
