@@ -15,7 +15,8 @@ import {
   BarChart,
   HelpCircle,
   ChevronRight,  // New icon for index
-  ListFilter      // New icon for index
+  ListFilter,      // New icon for index
+  Menu
 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { timelineGroups } from './timelineData';
