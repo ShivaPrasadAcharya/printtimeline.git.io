@@ -654,9 +654,72 @@ const Timeline = ({ timelineData, title, language, isActive, showContent }) => {
   const [activeIndex, setActiveIndex] = useState(0);
   const timelineRef = useRef(null);
 
-  // ... (keep your existing exportToPDF function)
+  const exportToPDF = async (exportLanguage) => {
+    const pdf = new jsPDF('p', 'mm', 'a4');
+    const timeline = timelineRef.current;
+    
+    // Configure PDF
+    pdf.setFont('helvetica');
+    pdf.setFontSize(16);
+    
+    // Add title
+    const titleText = title[exportLanguage];
+    pdf.text(titleText, 20, 20);
+    
+    let currentY = 40;
+    const pageHeight = pdf.internal.pageSize.height;
+    const margin = 20;
+    const lineHeight = 7;
+    
+    // Iterate through timeline entries
+    timelineData.forEach((entry, index) => {
+      // Check if we need a new page
+      if (currentY > pageHeight - margin) {
+        pdf.addPage();
+        currentY = margin;
+      }
+      
+      // Add year and title
+      pdf.setFontSize(12);
+      pdf.setFont('helvetica', 'bold');
+      const yearText = entry.year;
+      pdf.text(yearText, margin, currentY);
+      currentY += lineHeight;
+      
+      // Add title
+      const entryTitle = entry.title[exportLanguage];
+      pdf.text(entryTitle, margin, currentY);
+      currentY += lineHeight;
+      
+      // Add description
+      pdf.setFontSize(10);
+      pdf.setFont('helvetica', 'normal');
+      const description = entry.description[exportLanguage];
+      
+      // Split description into lines that fit the page width
+      const splitDescription = pdf.splitTextToSize(description, pdf.internal.pageSize.width - (margin * 2));
+      
+      // Check if description will fit on current page
+      if (currentY + (splitDescription.length * lineHeight) > pageHeight - margin) {
+        pdf.addPage();
+        currentY = margin;
+      }
+      
+      // Add description lines
+      splitDescription.forEach(line => {
+        pdf.text(line, margin, currentY);
+        currentY += lineHeight;
+      });
+      
+      // Add spacing between entries
+      currentY += lineHeight;
+    });
+    
+    // Save the PDF
+    pdf.save(`${title[exportLanguage].replace(/\s+/g, '-').toLowerCase()}.pdf`);
+  };
 
-  if (!isActive) return null;
+ if (!isActive) return null;
 
   return (
     <Card className="w-full max-w-3xl mx-auto mb-8">
