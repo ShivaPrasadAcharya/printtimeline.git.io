@@ -310,6 +310,14 @@ const Timeline = ({ timelineData, title, index, language, isActive, showContent,
             );
           })}
         </div>
+        <div className="mt-8 pt-4 border-t border-gray-200">
+  <p className="text-right text-sm text-gray-600 italic">
+    Shiva Prasad Acharya
+    <br />
+    Supreme Court (2081)
+  </p>
+</div>
+</CardContent>
       </CardContent>
     </Card>
   );
