@@ -317,7 +317,6 @@ const Timeline = ({ timelineData, title, index, language, isActive, showContent,
     Supreme Court (2081)
   </p>
 </div>
-</CardContent>
       </CardContent>
     </Card>
   );
