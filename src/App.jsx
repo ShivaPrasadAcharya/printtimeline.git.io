@@ -320,9 +320,47 @@ function App() {
   const [activeTimeline, setActiveTimeline] = useState(Object.keys(timelineGroups)[0]);
   const [showContent, setShowContent] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
-  const [matchCount, setMatchCount] = useState(0);
- const [isHeaderVisible, setIsHeaderVisible] = useState(false);
+  const [currentMatchIndex, setCurrentMatchIndex] = useState(0);  // Change initial value to 1
+  const [matchCount, setMatchCount] = useState(0);  // Rename this to totalMatches
+  const [isHeaderVisible, setIsHeaderVisible] = useState(false);
+
+  useEffect(() => {
+    if (!searchTerm) {
+      setMatchCount(0);  // Using existing matchCount state instead of totalMatches
+      setCurrentMatchIndex(1);
+      return;
+    }
+
+    let matches = 0;
+    Object.values(timelineGroups).forEach(timeline => {
+      timeline.data.forEach(entry => {
+        const entryText = [
+          entry.year,
+          entry.title.en,
+          entry.title.ne,
+          entry.description.en,
+          entry.description.ne
+        ].join(' ').toLowerCase();
+
+        const regex = new RegExp(searchTerm.toLowerCase(), 'g');
+        const count = (entryText.match(regex) || []).length;
+        matches += count;
+      });
+    });
+
+    setMatchCount(matches);  // Using existing matchCount state
+    if (currentMatchIndex > matches) {
+      setCurrentMatchIndex(1);
+    }
+  }, [searchTerm]);
+
+  const nextMatch = () => {
+    setCurrentMatchIndex(prev => prev < matchCount ? prev + 1 : 1);
+  };
+
+  const prevMatch = () => {
+    setCurrentMatchIndex(prev => prev > 1 ? prev - 1 : matchCount);
+  };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
@@ -383,15 +421,16 @@ function App() {
                   </svg>
                 </div>
                 
-                {searchTerm && (
+                 {searchTerm && (
                   <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
                     {matchCount > 0 && (
-                      <div className="flex items-center gap-1 text-sm text-gray-600">
-                        <span>{currentMatchIndex}/{matchCount}</span>
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <span>{currentMatchIndex} of {matchCount}</span>
                         <div className="flex gap-1">
                           <button
                             onClick={prevMatch}
-                            className="p-1 hover:bg-gray-100 rounded-full"
+                            className="p-1.5 hover:bg-gray-100 rounded-full transition-colors"
+                            title="Previous match"
                           >
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -399,7 +438,8 @@ function App() {
                           </button>
                           <button
                             onClick={nextMatch}
-                            className="p-1 hover:bg-gray-100 rounded-full"
+                            className="p-1.5 hover:bg-gray-100 rounded-full transition-colors"
+                            title="Next match"
                           >
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
@@ -410,7 +450,8 @@ function App() {
                     )}
                     <button
                       onClick={() => setSearchTerm('')}
-                      className="p-1 hover:bg-gray-100 rounded-full text-gray-400 hover:text-gray-600"
+                      className="p-1 hover:bg-gray-100 rounded-full text-gray-400 hover:text-gray-600 transition-colors"
+                      title="Clear search"
                     >
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
@@ -429,8 +470,6 @@ function App() {
                     </button>
                   </div>
                 )}
-              </div>
-            </div>
 
             <Select value={activeTimeline} onValueChange={setActiveTimeline}>
               <SelectTrigger className="w-[280px] bg-white">
