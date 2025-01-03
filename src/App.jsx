@@ -320,48 +320,9 @@ function App() {
   const [activeTimeline, setActiveTimeline] = useState(Object.keys(timelineGroups)[0]);
   const [showContent, setShowContent] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [currentMatchIndex, setCurrentMatchIndex] = useState(1);
-  const [totalMatches, setTotalMatches] = useState(0);
-  const [isHeaderVisible, setIsHeaderVisible] = useState(false);
-
-  // Add these new functions
-  useEffect(() => {
-    if (!searchTerm) {
-      setTotalMatches(0);
-      setCurrentMatchIndex(1);
-      return;
-    }
-
-    let matches = 0;
-    Object.values(timelineGroups).forEach(timeline => {
-      timeline.data.forEach(entry => {
-        const entryText = [
-          entry.year,
-          entry.title.en,
-          entry.title.ne,
-          entry.description.en,
-          entry.description.ne
-        ].join(' ').toLowerCase();
-
-        const regex = new RegExp(searchTerm.toLowerCase(), 'g');
-        const count = (entryText.match(regex) || []).length;
-        matches += count;
-      });
-    });
-
-    setTotalMatches(matches);
-    if (currentMatchIndex > matches) {
-      setCurrentMatchIndex(1);
-    }
-  }, [searchTerm]);
-
-  const nextMatch = () => {
-    setCurrentMatchIndex(prev => prev < totalMatches ? prev + 1 : 1);
-  };
-
-  const prevMatch = () => {
-    setCurrentMatchIndex(prev => prev > 1 ? prev - 1 : totalMatches);
-  };
+  const [currentMatchIndex, setCurrentMatchIndex] = useState(0);
+  const [matchCount, setMatchCount] = useState(0);
+ const [isHeaderVisible, setIsHeaderVisible] = useState(false);
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50">
@@ -397,82 +358,114 @@ function App() {
                 </span>
               </button>
 
-             <div className="relative flex-1 md:w-[400px]">
-  <input
-    type="text"
-    value={searchTerm}
-    onChange={(e) => setSearchTerm(e.target.value)}
-    placeholder={language === 'en' ? "Search timeline..." : "टाइमलाइन खोज्नुहोस्..."}
-    className="w-full px-4 py-2 pl-10 pr-24 rounded-full border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-300"
-  />
-  <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      className="h-5 w-5"
-      fill="none"
-      viewBox="0 0 24 24"
-      stroke="currentColor"
-    >
-      <path
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        strokeWidth={2}
-        d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-      />
-    </svg>
-  </div>
-  
-  {searchTerm && (
-    <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
-      {totalMatches > 0 && (
-        <div className="flex items-center gap-2 text-sm text-gray-600">
-          <span>{currentMatchIndex} of {totalMatches}</span>
-          <div className="flex gap-1">
+              <div className="relative flex-1 md:w-[400px]">
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  placeholder="Search timeline..."
+                  className="w-full px-4 py-2 pl-10 pr-24 rounded-full border border-gray-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 transition-all duration-300"
+                />
+                <div className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className="h-5 w-5"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                    />
+                  </svg>
+                </div>
+                
+                {searchTerm && (
+                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2 flex items-center gap-2">
+                    {matchCount > 0 && (
+                      <div className="flex items-center gap-1 text-sm text-gray-600">
+                        <span>{currentMatchIndex}/{matchCount}</span>
+                        <div className="flex gap-1">
+                          <button
+                            onClick={prevMatch}
+                            className="p-1 hover:bg-gray-100 rounded-full"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
+                            </svg>
+                          </button>
+                          <button
+                            onClick={nextMatch}
+                            className="p-1 hover:bg-gray-100 rounded-full"
+                          >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                            </svg>
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                    <button
+                      onClick={() => setSearchTerm('')}
+                      className="p-1 hover:bg-gray-100 rounded-full text-gray-400 hover:text-gray-600"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-5 w-5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M6 18L18 6M6 6l12 12"
+                        />
+                      </svg>
+                    </button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <Select value={activeTimeline} onValueChange={setActiveTimeline}>
+              <SelectTrigger className="w-[280px] bg-white">
+                <SelectValue placeholder="Select Timeline">
+                  {timelineGroups[activeTimeline].title[language]}
+                </SelectValue>
+              </SelectTrigger>
+              <SelectContent>
+                {Object.values(timelineGroups).map((timeline) => (
+                  <SelectItem key={timeline.id} value={timeline.id}>
+                    {timeline.title[language]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+
             <button
-              onClick={prevMatch}
-              className="p-1.5 hover:bg-gray-100 rounded-full transition-colors"
-              title="Previous match"
+              onClick={() => setShowContent(prev => !prev)}
+              className="flex items-center gap-2 px-4 py-2 rounded-full bg-white shadow-sm hover:shadow-md transition-all duration-300 border border-gray-200"
             >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-              </svg>
-            </button>
-            <button
-              onClick={nextMatch}
-              className="p-1.5 hover:bg-gray-100 rounded-full transition-colors"
-              title="Next match"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-              </svg>
+              {showContent ? (
+                <>
+                  <EyeOff className="w-5 h-5 text-blue-600" />
+                  <span className="font-medium">Hide Content</span>
+                </>
+              ) : (
+                <>
+                  <Eye className="w-5 h-5 text-blue-600" />
+                  <span className="font-medium">Show Content</span>
+                </>
+              )}
             </button>
           </div>
         </div>
-      )}
-      <button
-        onClick={() => setSearchTerm('')}
-        className="p-1 hover:bg-gray-100 rounded-full text-gray-400 hover:text-gray-600 transition-colors"
-        title="Clear search"
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          className="h-5 w-5"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M6 18L18 6M6 6l12 12"
-          />
-        </svg>
-      </button>
-    </div>
-  )}
-</div>    
-
+      </div>
 
       {/* Main Content */}
       <div className="px-4 py-6">
