@@ -469,7 +469,7 @@ function App() {
                       </svg>
                     </button>
                   </div>
-                )}
+                )};
 
             <Select value={activeTimeline} onValueChange={setActiveTimeline}>
               <SelectTrigger className="w-[280px] bg-white">
