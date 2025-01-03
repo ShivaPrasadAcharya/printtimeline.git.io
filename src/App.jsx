@@ -472,7 +472,7 @@ function App() {
     </div>
   )}
 </div>    
-  </div>
+
 
       {/* Main Content */}
       <div className="px-4 py-6">
